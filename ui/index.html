@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hatch Spirit Pet Preset Builder</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="intro">
+        <div>
+          <h1>Hatch Spirit Pet</h1>
+          <p>
+            Build a Codex-safe command from a concept, art style, action style,
+            and optional row overrides.
+          </p>
+        </div>
+        <div class="contract">
+          <span>8 x 9 atlas</span>
+          <span>192 x 208 cells</span>
+          <span>command only</span>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <form class="panel controls" id="builder-form">
+          <fieldset>
+            <legend>Concept</legend>
+            <label>
+              Pet name
+              <input id="pet-name" name="petName" value="Luma" autocomplete="off" />
+            </label>
+            <label>
+              Description
+              <input
+                id="description"
+                name="description"
+                value="A compact Codex spirit pet ready for sprite animation."
+              />
+            </label>
+            <label>
+              Concept notes
+              <textarea id="pet-notes" name="petNotes" rows="4">a tiny lantern forest spirit with a sleepy face and leaf cloak</textarea>
+            </label>
+            <label>
+              Output directory
+              <input
+                id="output-dir"
+                name="outputDir"
+                value="/absolute/path/to/run"
+                autocomplete="off"
+              />
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Presets</legend>
+            <div class="two-col">
+              <label>
+                Art style
+                <select id="art-style" name="artStyle"></select>
+              </label>
+              <label>
+                Action style
+                <select id="action-style" name="actionStyle"></select>
+              </label>
+            </div>
+            <label>
+              Extra style notes
+              <textarea id="style-notes" name="styleNotes" rows="3" placeholder="Optional material, palette, silhouette, or vibe notes"></textarea>
+            </label>
+            <label>
+              Extra action notes
+              <textarea id="action-notes" name="actionNotes" rows="3" placeholder="Optional global motion notes"></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>State actions</legend>
+            <div class="state-grid" id="state-grid"></div>
+          </fieldset>
+        </form>
+
+        <aside class="panel output">
+          <div class="output-header">
+            <div>
+              <h2>Generated command</h2>
+              <p>Copy this into the repo root or adapt the paths.</p>
+            </div>
+            <button id="copy-command" type="button">Copy</button>
+          </div>
+          <pre id="command-output" aria-live="polite"></pre>
+
+          <h2>Summary</h2>
+          <dl class="summary" id="summary"></dl>
+
+          <h2>Row preview</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>State</th>
+                  <th>Frames</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="row-preview"></tbody>
+            </table>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

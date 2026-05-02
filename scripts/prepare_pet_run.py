@@ -42,7 +42,7 @@ TRANSPARENCY_ARTIFACT_RULES = [
 
 STATE_REQUIREMENTS = {
     "waving": [
-        "Show a greeting, charm, flourish, ritual gesture, taunt, or stance change appropriate to the spirit archetype.",
+        "Show a greeting, charm, flourish, ritual gesture, taunt, or stance change appropriate to the selected action style.",
         "Do not draw wave marks, motion arcs, loose sparkles, symbols, or floating effects unless they physically touch or overlap the spirit.",
     ],
     "jumping": [
@@ -67,39 +67,160 @@ STATE_REQUIREMENTS = {
         "The effect must remain attached to or overlapping the spirit silhouette.",
     ],
     "running-right": [
-        "Show rightward travel through body lean, bob, glide, scamper, roll, float, stride, or dash appropriate to the spirit archetype.",
+        "Show rightward travel through body lean, bob, glide, scamper, roll, float, stride, or dash appropriate to the selected action style.",
         "Do not draw speed lines, dust clouds, floor shadows, motion trails, or detached motion effects.",
     ],
     "running-left": [
-        "Show leftward travel through body lean, bob, glide, scamper, roll, float, stride, or dash appropriate to the spirit archetype.",
+        "Show leftward travel through body lean, bob, glide, scamper, roll, float, stride, or dash appropriate to the selected action style.",
         "Do not draw speed lines, dust clouds, floor shadows, motion trails, or detached motion effects.",
     ],
     "running": [
-        "Show an active work loop, hurry, patrol, pursuit, forward rush, or in-place motion loop appropriate to the spirit archetype.",
+        "Show an active work loop, hurry, patrol, pursuit, forward rush, or in-place motion loop appropriate to the selected action style.",
         "Do not draw speed lines, dust clouds, floor shadows, motion trails, or detached motion effects.",
     ],
 }
 
-SPIRIT_PET_STYLE = (
-    "Compact 2D game-sprite spirit style: original character, mascot, familiar, object spirit, "
-    "elemental, ghost, robot, creature, or fighter energy without copying any protected character; "
-    "full-body or full-object readable proportions, strong silhouette, clear expression language, "
-    "thick dark 1-2 px outline, visible stepped/pixel edges, limited palette, flat cel shading, "
-    "and one clear motif readable at 192x208. Avoid polished illustration, painterly rendering, "
-    "anime key art, 3D render, glossy lighting, soft gradients, realistic material texture, "
-    "anti-aliased high-detail edges, scenery, UI, text, and tiny details that disappear inside "
-    "a Codex pet cell."
+BASE_SPRITE_CONTRACT = (
+    "Codex pet sprite contract: original character or object-persona, full-body or full-object "
+    "readable inside a 192x208 cell, strong silhouette, clear expression language, stable palette, "
+    "consistent proportions, no scenery, no UI, no text, no shadows on a floor, no broad glow haze, "
+    "no motion blur, and no detached effects that cross frame slots."
 )
 
-ARCHETYPE_STYLE_NOTES = {
-    "fighter": "Arcade fighter spirit: combat-ready silhouette, bold pose language, readable costume/weapon/power identity, and punchy timing without copying named fighting-game characters.",
-    "forest": "Forest spirit: leaf, bark, moss, flower, mushroom, seed, lantern, or animal-familiar motifs with gentle organic motion.",
-    "ghost": "Ghost or wisp spirit: translucent-looking but rendered as opaque sprite shapes, floaty motion, expressive face, and attached mist only.",
-    "elemental": "Elemental spirit: fire, water, lightning, ice, stone, wind, or light motif attached tightly to the body/object silhouette.",
-    "robot": "Robot or machine spirit: compact mechanical body, clear face/display, simple readable parts, and attached sparks/static only.",
-    "object": "Object spirit: an everyday item with face, posture, personality, and prop-like movement while preserving its object identity.",
-    "mascot": "Mascot spirit: cute, expressive, brand-safe original character with chunky proportions and clear emotional poses.",
-    "custom": "Custom spirit: follow the user's concept, style notes, and action notes while preserving the Codex pet sprite contract.",
+ART_STYLE_PRESETS = {
+    "pixel-art": {
+        "label": "Pixel Art",
+        "visual_language": "crisp pixel-art sprite with visible stepped edges, chunky simplified forms, limited palette, and dark 1-2 px outline",
+        "codex_safe_translation": "Use clean hard-edged pixel clusters and flat cel shading; avoid tiny dithering that disappears at pet size.",
+        "allowed_traits": "blocky highlights, small readable clusters, palette swaps, simple expression pixels, compact attached effects",
+        "banned_traits": "painterly blending, anti-aliased glossy edges, noisy dithering, micro-details, realistic texture, text, scenery",
+    },
+    "stylized-3d": {
+        "label": "Stylized 3D Cartoon",
+        "visual_language": "stylized 3D-cartoon-inspired avatar with rounded toy-like proportions, clean simplified volumes, and friendly readable face",
+        "codex_safe_translation": "Render as a flat sprite strip with 3D-inspired shape cues only; keep lighting simple and consistent across frames.",
+        "allowed_traits": "rounded forms, simple rim accents, soft-looking but opaque shapes, chunky limbs/props, clean material blocks",
+        "banned_traits": "camera perspective changes, realistic rendering, studio background, cast shadows, complex reflections, depth-of-field blur",
+    },
+    "soft-clay": {
+        "label": "Soft Clay Avatar",
+        "visual_language": "soft clay-like avatar with matte rounded forms, handmade charm, simple face, and tactile chunky silhouette",
+        "codex_safe_translation": "Suggest clay through rounded shapes and subtle matte color steps while keeping sprite edges clean and extractable.",
+        "allowed_traits": "soft rounded blobs, gentle matte color steps, handmade asymmetry, simple accessory shapes, compact attached effects",
+        "banned_traits": "realistic clay fingerprints, heavy studio lighting, floor shadows, photographic render background, soft transparent glows",
+    },
+    "anime": {
+        "label": "Anime Sprite",
+        "visual_language": "anime-inspired compact sprite with expressive eyes, simplified hair/cloth shapes, sharp pose language, and clean cel shading",
+        "codex_safe_translation": "Translate anime into a readable chibi or compact sprite; keep details broad and avoid cinematic key-art composition.",
+        "allowed_traits": "large expressive face, simplified hair masses, cel-shaded outfit blocks, crisp attached magic or emotion marks",
+        "banned_traits": "full anime illustration, speed-line backgrounds, manga panels, tiny costume filigree, cinematic camera cuts, text bubbles",
+    },
+    "custom": {
+        "label": "Custom",
+        "visual_language": "custom compact Codex pet sprite style guided by the user notes",
+        "codex_safe_translation": "Apply user style notes only when they preserve the fixed Codex sprite contract and readable 192x208 cells.",
+        "allowed_traits": "user-specified traits that remain compact, opaque, hard-edged, and consistent across rows",
+        "banned_traits": "anything that breaks transparency, slot boundaries, character consistency, or tiny-pet readability",
+    },
+}
+
+ACTION_STYLE_PRESETS = {
+    "fighter": {
+        "label": "Fighter Moves",
+        "description": "Arcade fighter energy: stances, dashes, taunts, hit reactions, rushes, and finishers.",
+        "states": {
+            "idle": "combat stance breathing loop with guard up and small weight shifts",
+            "running-right": "rightward fighting-game dash loop",
+            "running-left": "leftward fighting-game dash loop",
+            "waving": "taunt or stance flourish with gesture and return",
+            "jumping": "fighting leap with anticipation, lift, aerial peak, descent, settle",
+            "failed": "hit-stun, KO, or defeated reaction",
+            "waiting": "charge-up or power idle loop",
+            "running": "forward rush or in-place attack run loop",
+            "review": "special power or finisher loop",
+        },
+    },
+    "superhero": {
+        "label": "Superhero Moves",
+        "description": "Heroic poses, cape/energy beats, rescue-ready motion, and triumphant power moments.",
+        "states": {
+            "idle": "heroic ready stance, cape/cloth lift, chest emblem or motif subtly pulsing",
+            "running-right": "rightward heroic sprint, flight glide, or power-assisted dash",
+            "running-left": "leftward heroic sprint, flight glide, or power-assisted dash",
+            "waving": "hero greeting, salute, confident point, or cape flourish",
+            "jumping": "hero takeoff, hover, leap, or landing-ready aerial pose",
+            "failed": "hero stagger, cape droop, dimmed emblem, or kneeling recovery",
+            "waiting": "power-up anticipation with contained energy around body, hands, emblem, or prop",
+            "running": "urgent rescue rush, patrol loop, or forward charge",
+            "review": "signature heroic power pose, contained burst, emblem glow, or victory reveal",
+        },
+    },
+    "cozy": {
+        "label": "Cozy Companion",
+        "description": "Gentle, friendly motions with soft emotional beats and low-intensity charm.",
+        "states": {
+            "idle": "calm breathing, blink, sway, tiny bounce, or sleepy hover",
+            "running-right": "rightward toddle, scamper, float, roll, or gentle glide",
+            "running-left": "leftward toddle, scamper, float, roll, or gentle glide",
+            "waving": "friendly wave, shy hello, small bow, sparkle-free charm, or happy wiggle",
+            "jumping": "small hop, buoyant bob, excited pop-up, or floaty lift",
+            "failed": "sad slump, sleepy droop, startled blink, wilt, or tiny wobble",
+            "waiting": "listening, thinking, idle fidget, warm pulse, or patient attention loop",
+            "running": "busy little work loop, eager hurry, or in-place trot",
+            "review": "happy celebration, delighted glow, bow, tiny spin, or proud reveal",
+        },
+    },
+    "ghostly": {
+        "label": "Ghostly Motion",
+        "description": "Floaty, spectral, wisp-like movement while staying opaque and easy to extract.",
+        "states": {
+            "idle": "slow hover, sheet/body sway, blink, wisp pulse, or gentle bob",
+            "running-right": "rightward drift, glide, phase-like float, or bobbing travel",
+            "running-left": "leftward drift, glide, phase-like float, or bobbing travel",
+            "waving": "spectral greeting, shy peek, swirl-in-place, or playful haunting gesture",
+            "jumping": "buoyant rise, pop-up float, vanish-and-return pose beat, or airy lift",
+            "failed": "faded slump, startled poof, dimmed face, or drooping wisp reaction",
+            "waiting": "quiet hovering attention, contained mist pulse, or listening loop",
+            "running": "eager haunt patrol, quick float loop, or in-place drifting motion",
+            "review": "spooky reveal, contained wisp flare, moonlit charm, or playful spectral flourish",
+        },
+    },
+    "magical": {
+        "label": "Magical Spirit",
+        "description": "Spells, rituals, charms, transformations, and contained magical effects.",
+        "states": {
+            "idle": "mystic idle, breathing, blink, wand/prop hum, or motif shimmer",
+            "running-right": "rightward enchanted glide, scamper, dash, or charm-assisted travel",
+            "running-left": "leftward enchanted glide, scamper, dash, or charm-assisted travel",
+            "waving": "spell gesture, charm flourish, wand/hand motion, or ritual greeting",
+            "jumping": "levitation hop, magic lift, transformation beat, or aerial spell-ready pose",
+            "failed": "spell fizzles, startled recoil, dimmed aura, or tired slump",
+            "waiting": "spell charge, quiet ritual, listening to magic, or contained aura loop",
+            "running": "urgent spellcasting loop, active ritual motion, or pursuit with attached magic",
+            "review": "signature spell reveal, transformation, contained aura bloom, or magical celebration",
+        },
+    },
+    "utility": {
+        "label": "Utility / Work Loop",
+        "description": "Helpful assistant motions, tool use, patrol, focus, and productive activity.",
+        "states": {
+            "idle": "focused idle, blink, tool-ready stance, screen/face pulse, or attentive breathing",
+            "running-right": "rightward purposeful travel, roll, hover, walk, or task dash",
+            "running-left": "leftward purposeful travel, roll, hover, walk, or task dash",
+            "waving": "acknowledgement gesture, ready signal, tool flourish, or friendly check-in",
+            "jumping": "quick hop, tool reach, pop-up notification beat, or active reposition",
+            "failed": "error wobble, tired slump, dimmed display, tool drop, or confused blink",
+            "waiting": "thinking, scanning, loading, listening, charging, or standby loop",
+            "running": "busy work loop, typing/tooling motion, patrol, or focused task cycle",
+            "review": "task complete flourish, check-ready reveal, success pulse, or proud presentation",
+        },
+    },
+    "custom": {
+        "label": "Custom Actions",
+        "description": "Generic Codex-safe row actions intended to be overridden with --state-action or --action-notes.",
+        "states": {state: purpose for state, _row, _frames, purpose in ROWS},
+    },
 }
 
 CHROMA_KEY_CANDIDATES = [
@@ -395,14 +516,59 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text.rstrip() + "\n", encoding="utf-8")
 
 
+def parse_state_actions(values: list[str]) -> dict[str, str]:
+    valid_states = {state for state, _row, _frames, _purpose in ROWS}
+    overrides: dict[str, str] = {}
+    for value in values:
+        if "=" not in value:
+            raise SystemExit(
+                f"invalid --state-action {value!r}; expected state=action text"
+            )
+        state, action = value.split("=", 1)
+        state = state.strip()
+        action = " ".join(action.strip().split())
+        if state not in valid_states:
+            valid = ", ".join(sorted(valid_states))
+            raise SystemExit(f"invalid --state-action state {state!r}; expected one of: {valid}")
+        if not action:
+            raise SystemExit(f"invalid --state-action for {state!r}; action text is empty")
+        overrides[state] = action
+    return overrides
+
+
+def resolve_action_style(args: argparse.Namespace) -> str:
+    if args.action_style:
+        return args.action_style
+    if args.spirit_archetype in ACTION_STYLE_PRESETS:
+        return args.spirit_archetype
+    return "custom"
+
+
+def resolved_state_actions(args: argparse.Namespace) -> dict[str, str]:
+    preset = ACTION_STYLE_PRESETS[args.action_style]["states"]
+    return {
+        state: args.state_actions.get(state) or preset[state]
+        for state, _row, _frames, _purpose in ROWS
+    }
+
+
 def resolved_style_notes(args: argparse.Namespace) -> str:
     raw_style_notes = args.style_notes.strip()
-    archetype = args.spirit_archetype.strip().lower() or "custom"
-    archetype_note = ARCHETYPE_STYLE_NOTES.get(archetype, ARCHETYPE_STYLE_NOTES["custom"])
-    raw_style_notes = raw_style_notes.strip()
+    preset = ART_STYLE_PRESETS[args.art_style]
+    def clause(label: str, value: str) -> str:
+        return f"{label}: {value.rstrip('.')}."
+
+    parts = [
+        BASE_SPRITE_CONTRACT,
+        clause("Art style", preset["label"]),
+        clause("Visual language", preset["visual_language"]),
+        clause("Codex-safe translation", preset["codex_safe_translation"]),
+        clause("Allowed traits", preset["allowed_traits"]),
+        clause("Banned traits", preset["banned_traits"]),
+    ]
     if not raw_style_notes:
-        return f"{SPIRIT_PET_STYLE} Archetype: {archetype_note}"
-    return f"{SPIRIT_PET_STYLE} Archetype: {archetype_note} Additional user style notes: {raw_style_notes}."
+        return " ".join(parts)
+    return " ".join([*parts, f"Additional user style notes: {raw_style_notes}."])
 
 
 def base_pet_prompt(args: argparse.Namespace) -> str:
@@ -410,11 +576,12 @@ def base_pet_prompt(args: argparse.Namespace) -> str:
     style_notes = resolved_style_notes(args)
     chroma_key = args.chroma_key["hex"]
     chroma_name = args.chroma_key["name"]
-    action_notes = args.action_notes.strip() or "Use the archetype and concept to infer action language for all rows."
+    action_notes = args.action_notes.strip() or "Use the selected action style and concept to infer action language for all rows."
     return f"""Create a single clean reference sprite for a Codex app spirit pet named {args.display_name}.
 
 Spirit: {pet_notes}.
-Archetype: {args.spirit_archetype}.
+Art style preset: {args.art_style}.
+Action style preset: {args.action_style}.
 Style contract: {style_notes}
 Action language: {action_notes}
 
@@ -441,6 +608,7 @@ def row_prompt(
     transparency_artifact_text = "\n".join(
         f"- {requirement}" for requirement in TRANSPARENCY_ARTIFACT_RULES
     )
+    action_preset = ACTION_STYLE_PRESETS[args.action_style]
     return f"""Create a single horizontal sprite strip for the Codex app spirit pet `{args.pet_id}` in the state `{state}`.
 
 Use the attached reference image(s) for spirit identity and the attached base spirit image as the canonical design. Use the attached layout guide image only for frame count, slot spacing, centering, and safe padding. Simplify any high-resolution reference details into the compact 2D spirit pet sprite style. Do not simply copy the still reference pose. Generate distinct animation poses that create a readable cycle.
@@ -454,7 +622,8 @@ Identity lock:
 
 Output exactly {frames} separate animation frames arranged left-to-right in one single row. Each frame must show the same spirit: {pet_notes}.
 
-Archetype: {args.spirit_archetype}.
+Art style preset: {args.art_style}.
+Action style preset: {args.action_style} ({action_preset['label']}): {action_preset['description']}
 Style contract: {style_notes}
 
 Use this prompt as an authoritative sprite-production spec. Do not expand it into a polished illustration, painterly character image, anime key art, 3D render, vector mascot, glossy app icon, realistic portrait, or marketing artwork. The spirit must be original and must not copy any named character, logo, signature costume, or exact protected move.
@@ -585,10 +754,28 @@ def main() -> None:
     parser.add_argument("--pet-notes", default="")
     parser.add_argument("--style-notes", default="")
     parser.add_argument(
+        "--art-style",
+        default="pixel-art",
+        choices=sorted(ART_STYLE_PRESETS),
+        help="Art style preset used to translate the concept into a Codex-safe sprite prompt.",
+    )
+    parser.add_argument(
+        "--action-style",
+        default="",
+        choices=sorted(ACTION_STYLE_PRESETS),
+        help="Action style preset used to map the 9 fixed Codex states to animation actions.",
+    )
+    parser.add_argument(
+        "--state-action",
+        action="append",
+        default=[],
+        metavar="STATE=ACTION",
+        help="Override one row action, e.g. --state-action review='heroic power pose'. May be repeated.",
+    )
+    parser.add_argument(
         "--spirit-archetype",
-        default="custom",
-        choices=sorted(ARCHETYPE_STYLE_NOTES),
-        help="High-level spirit mode. Use fighter for the original fighter-pet behavior, or custom with explicit style/action notes.",
+        default="",
+        help="Deprecated compatibility hint. Prefer --art-style and --action-style.",
     )
     parser.add_argument(
         "--action-notes",
@@ -612,6 +799,8 @@ def main() -> None:
     args.description = infer_description(args, raw_reference_paths)
     args.pet_notes = infer_pet_notes(args, raw_reference_paths)
     args.pet_id = slugify(args.pet_id or args.pet_name or args.display_name)
+    args.action_style = resolve_action_style(args)
+    args.state_actions = parse_state_actions(args.state_action)
     if not args.pet_id:
         raise SystemExit("pet id must contain at least one letter or digit")
 
@@ -654,6 +843,7 @@ def main() -> None:
 
     args.chroma_key = choose_chroma_key(copied_ref_paths, args.chroma_key)
     layout_guides = create_layout_guides(run_dir)
+    state_actions = resolved_state_actions(args)
 
     request = {
         "pet_id": args.pet_id,
@@ -662,8 +852,8 @@ def main() -> None:
         "created_at": datetime.now(timezone.utc).isoformat(),
         "atlas": ATLAS,
         "rows": [
-            {"state": state, "row": row, "frames": frames, "purpose": purpose}
-            for state, row, frames, purpose in ROWS
+            {"state": state, "row": row, "frames": frames, "purpose": state_actions[state]}
+            for state, row, frames, _purpose in ROWS
         ],
         "layout_guides": [
             {**guide, "path": rel(Path(str(guide["path"])), run_dir)}
@@ -672,10 +862,16 @@ def main() -> None:
         "references": copied_refs,
         "chroma_key": args.chroma_key,
         "pet_notes": args.pet_notes,
+        "art_style": args.art_style,
+        "art_style_preset": ART_STYLE_PRESETS[args.art_style],
+        "action_style": args.action_style,
+        "action_style_preset": ACTION_STYLE_PRESETS[args.action_style],
+        "state_action_overrides": args.state_actions,
+        "state_actions": state_actions,
         "spirit_archetype": args.spirit_archetype,
         "style_notes": args.style_notes,
         "action_notes": args.action_notes,
-        "house_style": SPIRIT_PET_STYLE,
+        "house_style": BASE_SPRITE_CONTRACT,
         "primary_generation_skill": "$imagegen",
     }
     (run_dir / "pet_request.json").write_text(
@@ -683,10 +879,10 @@ def main() -> None:
     )
 
     write_text(prompt_dir / "base-pet.md", base_pet_prompt(args))
-    for state, row, frames, purpose in ROWS:
+    for state, row, frames, _purpose in ROWS:
         write_text(
             row_prompt_dir / f"{state}.md",
-            row_prompt(args, state, row, frames, purpose),
+            row_prompt(args, state, row, frames, state_actions[state]),
         )
 
     jobs = {

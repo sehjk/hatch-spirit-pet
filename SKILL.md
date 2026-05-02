@@ -22,21 +22,32 @@ ${CODEX_HOME:-$HOME/.codex}/pets/<spirit-name>/
   spritesheet.webp
 ```
 
+## Preset Model
+
+This skill compiles four inputs into Codex-safe prompts:
+
+1. Concept: the spirit identity, references, name, and short description.
+2. Art style: a preset such as `pixel-art`, `stylized-3d`, `soft-clay`, `anime`, or `custom`.
+3. Action style: a preset such as `fighter`, `superhero`, `cozy`, `ghostly`, `magical`, `utility`, or `custom`.
+4. State overrides: optional `state=action` overrides for any fixed Codex row.
+
+The art preset translates visual language into a tiny transparent sprite-safe prompt. The action preset maps the fixed Codex states to action intent. Overrides win over the action preset for the named state.
+
 ## Row Semantics
 
-The Codex app still reads the same fixed rows and frame counts. Do not change row order, atlas size, cell size, or package shape. Interpret each row according to the requested spirit archetype and action notes.
+The Codex app still reads the same fixed rows and frame counts. Do not change row order, atlas size, cell size, or package shape. Interpret each row according to the requested action style and state overrides.
 
-| Row | Codex state | Generic spirit meaning | Fighter-compatible meaning | Frames |
-| --- | --- | --- | --- | ---: |
-| 0 | `idle` | signature idle / breathing / hover | combat stance / breathing guard | 6 |
-| 1 | `running-right` | travel right / glide / scamper / dash | dash right | 8 |
-| 2 | `running-left` | travel left / glide / scamper / dash | dash left | 8 |
-| 3 | `waving` | greeting / flourish / charm / ritual | taunt / stance flourish | 4 |
-| 4 | `jumping` | hop / float / leap / transformation beat | leap / aerial pose | 5 |
-| 5 | `failed` | startled / sad / dispelled / tired | hit-stun, KO, or defeated | 8 |
-| 6 | `waiting` | anticipation / charge / listening / ambient loop | charge-up / power idle | 6 |
-| 7 | `running` | active work loop / hurry / patrol / pursuit | forward rush loop | 6 |
-| 8 | `review` | special moment / reveal / spell / celebration | special power / finisher loop | 6 |
+| Row | Codex state | Default generic slot | Frames |
+| --- | --- | --- | ---: |
+| 0 | `idle` | signature idle / breathing / hover | 6 |
+| 1 | `running-right` | travel right / glide / scamper / dash | 8 |
+| 2 | `running-left` | travel left / glide / scamper / dash | 8 |
+| 3 | `waving` | greeting / flourish / charm / ritual | 4 |
+| 4 | `jumping` | hop / float / leap / transformation beat | 5 |
+| 5 | `failed` | startled / sad / dispelled / tired | 8 |
+| 6 | `waiting` | anticipation / charge / listening / ambient loop | 6 |
+| 7 | `running` | active work loop / hurry / patrol / pursuit | 6 |
+| 8 | `review` | special moment / reveal / spell / celebration | 6 |
 
 ## Visual Style
 
@@ -94,12 +105,22 @@ python "$SKILL_DIR/scripts/prepare_pet_run.py" \
   --pet-name "<Name>" \
   --description "<one sentence>" \
   --pet-notes "<original spirit concept>" \
-  --spirit-archetype "<fighter|forest|ghost|elemental|robot|object|mascot|custom>" \
+  --art-style "<pixel-art|stylized-3d|soft-clay|anime|custom>" \
+  --action-style "<fighter|superhero|cozy|ghostly|magical|utility|custom>" \
+  --state-action 'review=<optional specific review action>' \
   --style-notes "<optional style notes>" \
   --action-notes "<optional row/action notes>" \
   --output-dir /absolute/path/to/run \
   --force
 ```
+
+Optional command-builder UI:
+
+```text
+${CODEX_HOME:-$HOME/.codex}/skills/hatch-spirit-pet/ui/index.html
+```
+
+Open that file in a browser to toggle presets, edit row actions, and copy a complete `prepare_pet_run.py` command. The UI does not run scripts, call `$imagegen`, or write files.
 
 2. Generate and record the base with `$imagegen`, then inspect ready jobs:
 
