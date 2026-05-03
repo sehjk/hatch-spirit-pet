@@ -1,3 +1,10 @@
 __pycache__/
 *.py[cod]
 .DS_Store
+output/
+generated_images/
+*.tmp
+*.log
+*.mp4
+*.mov
+*.webm

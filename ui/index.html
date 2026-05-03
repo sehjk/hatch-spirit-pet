@@ -9,42 +9,71 @@
   <body>
     <main class="app-shell">
       <section class="intro">
-        <div>
+        <div class="intro-copy">
+          <p class="eyebrow">Preset command studio</p>
           <h1>Hatch Spirit Pet</h1>
           <p>
-            Build a Codex-safe command from a concept, art style, action style,
-            and optional row overrides.
+            Prepare a Codex-safe pet run from concept to command, then complete
+            image generation, repairs, QA, and packaging in Codex.
           </p>
         </div>
         <div class="contract">
           <span>8 x 9 atlas</span>
           <span>192 x 208 cells</span>
-          <span>command only</span>
+          <span>Codex completes</span>
+        </div>
+      </section>
+
+      <section class="workflow" aria-label="Workflow">
+        <div>
+          <span>01</span>
+          <strong>Describe</strong>
+          <p>Name, body, silhouette, materials, colors.</p>
+        </div>
+        <div>
+          <span>02</span>
+          <strong>Preset</strong>
+          <p>Pick the visual style and motion family.</p>
+        </div>
+        <div>
+          <span>03</span>
+          <strong>Override</strong>
+          <p>Tune individual Codex states only where needed.</p>
+        </div>
+        <div>
+          <span>04</span>
+          <strong>Run</strong>
+          <p>Run the command, then ask Codex to finish with sub-agents.</p>
         </div>
       </section>
 
       <section class="workspace">
         <form class="panel controls" id="builder-form">
           <fieldset>
-            <legend>Concept</legend>
+            <legend>
+              <span>Concept</span>
+              <small>Identity and output target</small>
+            </legend>
+            <div class="two-col">
             <label>
-              Pet name
+              <span>Pet name</span>
               <input id="pet-name" name="petName" value="Luma" autocomplete="off" />
             </label>
             <label>
-              Description
+              <span>Description</span>
               <input
                 id="description"
                 name="description"
                 value="A compact Codex spirit pet ready for sprite animation."
               />
             </label>
+            </div>
             <label>
-              Concept notes
+              <span>Concept notes</span>
               <textarea id="pet-notes" name="petNotes" rows="4">a tiny lantern forest spirit with a sleepy face and leaf cloak</textarea>
             </label>
             <label>
-              Output directory
+              <span>Output directory</span>
               <input
                 id="output-dir"
                 name="outputDir"
@@ -55,29 +84,37 @@
           </fieldset>
 
           <fieldset>
-            <legend>Presets</legend>
+            <legend>
+              <span>Presets</span>
+              <small>Style and action language</small>
+            </legend>
             <div class="two-col">
               <label>
-                Art style
+                <span>Art style</span>
                 <select id="art-style" name="artStyle"></select>
+                <small class="field-hint" id="art-hint"></small>
               </label>
               <label>
-                Action style
+                <span>Action style</span>
                 <select id="action-style" name="actionStyle"></select>
+                <small class="field-hint" id="action-hint"></small>
               </label>
             </div>
             <label>
-              Extra style notes
+              <span>Extra style notes</span>
               <textarea id="style-notes" name="styleNotes" rows="3" placeholder="Optional material, palette, silhouette, or vibe notes"></textarea>
             </label>
             <label>
-              Extra action notes
+              <span>Extra action notes</span>
               <textarea id="action-notes" name="actionNotes" rows="3" placeholder="Optional global motion notes"></textarea>
             </label>
           </fieldset>
 
           <fieldset>
-            <legend>State actions</legend>
+            <legend>
+              <span>State actions</span>
+              <small>Fixed Codex slots, editable motion intent</small>
+            </legend>
             <div class="state-grid" id="state-grid"></div>
           </fieldset>
         </form>
@@ -86,16 +123,21 @@
           <div class="output-header">
             <div>
               <h2>Generated command</h2>
-              <p>Copy this into the repo root or adapt the paths.</p>
+              <p>Copy this into the repo root. The UI prepares the run; Codex generates, delegates rows, repairs, and packages.</p>
             </div>
             <button id="copy-command" type="button">Copy</button>
           </div>
           <pre id="command-output" aria-live="polite"></pre>
 
-          <h2>Summary</h2>
+          <div class="mini-grid" id="summary-cards"></div>
+
+          <h2>Argument summary</h2>
           <dl class="summary" id="summary"></dl>
 
-          <h2>Row preview</h2>
+          <div class="row-title">
+            <h2>Row preview</h2>
+            <span id="override-count">0 overrides</span>
+          </div>
           <div class="table-wrap">
             <table>
               <thead>

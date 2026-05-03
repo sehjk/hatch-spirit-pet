@@ -9,6 +9,8 @@ description: Create, repair, validate, preview, and package Codex-compatible ani
 
 Create a Codex-compatible animated custom pet that looks and behaves like a small original spirit, mascot, familiar, fighter, creature, object-persona, or stylized character. This is a fork of `$hatch-fighter-pet`: it keeps the exact Codex pet atlas/package contract, but makes the nine Codex animation rows configurable for different styles and action languages.
 
+This is a Codex-first skill. Python scripts prepare, record, validate, repair, and package runs; they do not spawn Codex subagents or call the built-in `$imagegen` runtime. Codex is the orchestrator for the normal agentic path.
+
 The skill supports two motion sources:
 
 - `$imagegen` row strips: default path, inherited from `$hatch-pet`.
@@ -95,6 +97,21 @@ Do not call image APIs directly for the normal path. The base job may be prompt-
 
 For video-derived rows, do not use `$imagegen` to draw missing frames. Use supplied video frames only, through this skill's deterministic scripts.
 
+Parent-agent responsibilities:
+
+- read or prepare `imagegen-jobs.json`
+- generate and record the base job
+- decide whether `running-left` can be mirrored
+- record selected built-in `$imagegen` outputs with `record_imagegen_result.py`
+- run `queue_pet_repairs.py`, `finalize_pet_run.py`, atlas validation, previews, and packaging
+
+Subagent responsibilities:
+
+- generate assigned row strips only
+- use row prompts and grounding images supplied by the manifest
+- return the selected original `$CODEX_HOME/generated_images/.../ig_*.png` path and a short QA note
+- never edit manifests, write `decoded/`, mirror rows, finalize, repair, or package
+
 ## Default Workflow
 
 1. Prepare a run:
@@ -120,7 +137,13 @@ Optional command-builder UI:
 ${CODEX_HOME:-$HOME/.codex}/skills/hatch-spirit-pet/ui/index.html
 ```
 
-Open that file in a browser to toggle presets, edit row actions, and copy a complete `prepare_pet_run.py` command. The UI does not run scripts, call `$imagegen`, or write files.
+Open that file in a browser to toggle presets, edit row actions, and copy a complete `prepare_pet_run.py` command. The UI prepares the run command only; complete generation, subagent delegation, repairs, QA, and packaging in Codex.
+
+After preparing a run, the user can ask:
+
+```text
+Use hatch-spirit-pet to finish this run with sub-agents: /absolute/path/to/run
+```
 
 2. Generate and record the base with `$imagegen`, then inspect ready jobs:
 
@@ -175,6 +198,8 @@ After the base job has been recorded, row-strip visual generation via `$imagegen
 Subagents may only generate image rows and return the selected original `$CODEX_HOME/generated_images/.../ig_*.png` source path plus a short QA note. They must not edit manifests, copy into `decoded/`, run video scripts, record results, mirror rows, finalize, repair, or package.
 
 Video-derived rows stay with the parent because they mutate the manifest and decoded outputs deterministically from supplied clips.
+
+If a user runs only `python scripts/prepare_pet_run.py`, no subagents will run. Subagents require Codex runtime and must be triggered by asking Codex to finish the prepared run.
 
 ## Repair Workflow
 

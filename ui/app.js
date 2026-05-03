@@ -36,6 +36,7 @@ const artStyles = {
 const actionStyles = {
   fighter: {
     label: "Fighter Moves",
+    hint: "Combat stances, dashes, jumps, charge-ups, and special-move loops.",
     states: {
       idle: "combat stance breathing loop with guard up and small weight shifts",
       "running-right": "rightward fighting-game dash loop",
@@ -50,6 +51,7 @@ const actionStyles = {
   },
   superhero: {
     label: "Superhero Moves",
+    hint: "Heroic travel, cape beats, power poses, and contained emblem energy.",
     states: {
       idle: "heroic ready stance, cape/cloth lift, chest emblem or motif subtly pulsing",
       "running-right": "rightward heroic sprint, flight glide, or power-assisted dash",
@@ -64,6 +66,7 @@ const actionStyles = {
   },
   cozy: {
     label: "Cozy Companion",
+    hint: "Gentle companion loops, soft body language, and warm friendly reactions.",
     states: {
       idle: "calm breathing, blink, sway, tiny bounce, or sleepy hover",
       "running-right": "rightward toddle, scamper, float, roll, or gentle glide",
@@ -78,6 +81,7 @@ const actionStyles = {
   },
   ghostly: {
     label: "Ghostly Motion",
+    hint: "Hovering, drifting, spooky-cute reveals, and contained spectral wisps.",
     states: {
       idle: "slow hover, sheet/body sway, blink, wisp pulse, or gentle bob",
       "running-right": "rightward drift, glide, phase-like float, or bobbing travel",
@@ -92,6 +96,7 @@ const actionStyles = {
   },
   magical: {
     label: "Magical Spirit",
+    hint: "Charm, ritual, spell, and motif-led motion with contained effects.",
     states: {
       idle: "mystic idle, breathing, blink, wand/prop hum, or motif shimmer",
       "running-right": "rightward enchanted glide, scamper, dash, or charm-assisted travel",
@@ -106,6 +111,7 @@ const actionStyles = {
   },
   utility: {
     label: "Utility / Work Loop",
+    hint: "Focused standby, task motion, scanning, loading, and ready signals.",
     states: {
       idle: "focused idle, blink, tool-ready stance, screen/face pulse, or attentive breathing",
       "running-right": "rightward purposeful travel, roll, hover, walk, or task dash",
@@ -120,6 +126,7 @@ const actionStyles = {
   },
   custom: {
     label: "Custom Actions",
+    hint: "Start from neutral slots, then write your own action language.",
     states: {
       idle: "signature idle loop with breathing, hover, pulse, blink, or weight shift",
       "running-right": "rightward travel loop: glide, scamper, dash, float, roll, or stride",
@@ -152,14 +159,20 @@ function populateSelect(select, presets) {
 
 function createStateControls() {
   const grid = $("state-grid");
-  rows.forEach(([state]) => {
+  rows.forEach(([state, frames]) => {
     const label = document.createElement("label");
     label.htmlFor = `state-${state}`;
-    label.textContent = state;
+    const title = document.createElement("span");
+    title.textContent = state;
+    const chip = document.createElement("span");
+    chip.className = "frame-chip";
+    chip.textContent = `${frames} frames`;
+    title.append(chip);
     const input = document.createElement("textarea");
     input.id = `state-${state}`;
     input.name = state;
     input.rows = 2;
+    label.append(title);
     label.append(input);
     grid.append(label);
   });
@@ -218,11 +231,14 @@ function buildCommand() {
 function renderSummary() {
   const summary = $("summary");
   summary.innerHTML = "";
+  const overrides = countOverrides();
   const items = [
     ["Pet", $("pet-name").value.trim() || "Untitled"],
     ["Art", artStyles[$("art-style").value].label],
     ["Action", actionStyles[$("action-style").value].label],
     ["Output", $("output-dir").value.trim() || "default timestamped folder"],
+    ["Rows", `${rows.length} Codex states`],
+    ["Overrides", String(overrides)],
   ];
   items.forEach(([key, value]) => {
     const dt = document.createElement("dt");
@@ -233,9 +249,31 @@ function renderSummary() {
   });
 }
 
+function renderSummaryCards() {
+  const cards = $("summary-cards");
+  cards.innerHTML = "";
+  const output = $("output-dir").value.trim();
+  const items = [
+    ["Preset", `${artStyles[$("art-style").value].label} + ${actionStyles[$("action-style").value].label}`],
+    ["Rows", `${rows.reduce((sum, [, frames]) => sum + frames, 0)} generated frames`],
+    ["Destination", output && output !== "/absolute/path/to/run" ? "Custom run folder" : "Needs output path"],
+  ];
+  items.forEach(([label, value]) => {
+    const card = document.createElement("div");
+    card.className = "mini-card";
+    const labelNode = document.createElement("span");
+    labelNode.textContent = label;
+    const valueNode = document.createElement("strong");
+    valueNode.textContent = value;
+    card.append(labelNode, valueNode);
+    cards.append(card);
+  });
+}
+
 function renderRows() {
   const tbody = $("row-preview");
   tbody.innerHTML = "";
+  const presetActions = actionStyles[$("action-style").value].states;
   rows.forEach(([state, frames]) => {
     const tr = document.createElement("tr");
     const stateCell = document.createElement("td");
@@ -243,16 +281,36 @@ function renderRows() {
     const actionCell = document.createElement("td");
     stateCell.textContent = state;
     frameCell.textContent = frames;
-    actionCell.textContent = $(`state-${state}`).value.trim();
+    const action = $(`state-${state}`).value.trim();
+    actionCell.textContent =
+      action === presetActions[state] ? action : `${action} (override)`;
     tr.append(stateCell, frameCell, actionCell);
     tbody.append(tr);
   });
 }
 
+function countOverrides() {
+  const presetActions = actionStyles[$("action-style").value].states;
+  return rows.filter(([state]) => {
+    const value = $(`state-${state}`).value.trim();
+    return value && value !== presetActions[state];
+  }).length;
+}
+
+function renderHints() {
+  $("art-hint").textContent = artStyles[$("art-style").value].hint;
+  $("action-hint").textContent = actionStyles[$("action-style").value].hint;
+}
+
 function render() {
   $("command-output").textContent = buildCommand();
+  renderHints();
+  renderSummaryCards();
   renderSummary();
   renderRows();
+  const overrides = countOverrides();
+  $("override-count").textContent =
+    overrides === 1 ? "1 override" : `${overrides} overrides`;
 }
 
 populateSelect($("art-style"), artStyles);
