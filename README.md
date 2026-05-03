@@ -1,5 +1,7 @@
 # Hatch Spirit Pet
 
+![Hatch Spirit Pet poster](assets/hatch-spirit-pet-poster.png)
+
 Create Codex-compatible animated custom pets from a concept, art style, and action style. This is a Codex-first skill: the scripts prepare and validate the run, while Codex orchestrates image generation, sub-agents, repairs, and final packaging.
 
 ## Install
